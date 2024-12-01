@@ -10,6 +10,6 @@ tNode* getD();
 tNode* getP();
 tNode* getN();
 tNode* getV();
-void syntaxError();
+[[noreturn]] void syntaxError();
 
 #endif // PARSER_H
