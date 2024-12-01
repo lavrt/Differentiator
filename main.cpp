@@ -4,8 +4,6 @@
 #include "tree.h"
 #include "differentiator.h"
 
-#define $ fprintf(stderr, "%s:%d in function: %s\n", __FILE__, __LINE__, __func__);
-
 int main()
 {
     tNode* root = getG();

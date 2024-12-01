@@ -5,6 +5,7 @@
 
 #include "tree.h"
 #include "dsl.h"
+#include "debug.h"
 
 const char* s = "x*2^3$"; // FIXME
 int pos = 0; // FIXME

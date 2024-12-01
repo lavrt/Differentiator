@@ -4,6 +4,8 @@
 #include <string.h>
 #include <assert.h>
 
+#include "debug.h"
+
 tNode* newNode(NodeType type, int value, tNode* left, tNode* right)
 {
     tNode* node = nullptr;
