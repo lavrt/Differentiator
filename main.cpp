@@ -5,10 +5,14 @@
 #include <stdbool.h>
 #include <ctype.h>
 
+#include "DSL.h"
+
 #define FREE(ptr_) \
     do { free(ptr_); ptr_ = nullptr; } while(0);
 #define FCLOSE(ptr_) \
     do { fclose(ptr_); ptr_ = nullptr; } while(0);
+#define SYNTAXERROR() \
+    do { syntaxError(__LINE__); } while (0);
 #define $ fprintf(stderr, "%s:%d in function: %s\n", __FILE__, __LINE__, __func__);
 
 enum NodeType
@@ -35,6 +39,7 @@ const char* const kAdd = "+";
 const char* const kSub = "-";
 const char* const kMul = "*";
 const char* const kDiv = "/";
+const char* const kDeg = "^";
 
 struct tNode
 {
@@ -44,51 +49,41 @@ struct tNode
     tNode* right;
 };
 
-struct infoNode
-{
-    char* data; // FIXME const
-    int rank;
-    int sequenceNumber;
-};
-
 const char* const kDumpFileName = "dump.gv";
+const char* const kDiffDumpFileName = "diffDump.gv";
 
 tNode* newNode(NodeType type, int value, tNode* left, tNode* right);
 tNode* memoryAllocationForNode(void);
 void treeDtor(tNode* node);
-void dump(tNode* root);
+void dump(tNode* root, const char* const dumpFileName);
 void dumpTreeTraversal(tNode* node, FILE* dumpFile);
 void dumpTreeTraversalWithArrows(tNode* node, FILE* dumpFile);
 void printOperationType(tNode* node, FILE* dumpFile);
-void writingExpressionToFile(tNode* root);
-void goToSubtreeWriting(tNode* node, FILE* expressionFile);
-void readingExpressionFromFile(tNode* root);
-void goToSubtreeReading(tNode* node, char* dataArray, int64_t fileSize);
-bool isOperation(char symbol);
-int compareNodesByRank(const void* firstNode, const void* secondNode);
-int compareNodesOfSameRankInOrder(const void* firstNode, const void* secondNode);
+tNode* diff(tNode* node);
+tNode* copyNode(tNode* node);
+
+tNode* getP();
+tNode* getG();
+tNode* getE();
+tNode* getT();
+tNode* getN();
+tNode* getV();
+void syntaxError(int line);
+
+const char* s = "5/x$"; // FIXME
+int pos = 0;            // FIXME
 
 int main()
 {
-    tNode* root = newNode(Operation, Div,
-        newNode(Operation, Add, newNode(Operation, Mul, newNode(Number, 3, NULL, NULL), newNode(Operation, Sub, newNode(Number, 10, NULL, NULL), newNode(Number, 1, NULL, NULL))), newNode(Variable, 1, NULL, NULL)),
-        newNode(Operation, Sub, newNode(Number, 1000, NULL, NULL), newNode(Number, 7, NULL, NULL)));
+    tNode* root = getG();
 
-    dump(root);
-    // tNode* root = memoryAllocationForNode();
+    dump(root, kDumpFileName);
 
-    fprintf(stderr, "%p\n", root);
+    tNode* diffRoot = diff(root);
 
-    writingExpressionToFile(root);
+    dump(diffRoot, kDiffDumpFileName);
 
-    readingExpressionFromFile(root);
-
-    dump(root);
-
-
-
-
-
+    treeDtor(diffRoot);
     treeDtor(root);
 
     return 0;
@@ -159,11 +154,11 @@ void treeDtor(tNode* node)
     FREE(node);
 }
 
-void dump(tNode* root)
+void dump(tNode* root, const char* const dumpFileName)
 {
     assert(root);
 
-    FILE* dumpFile = fopen(kDumpFileName, "w");
+    FILE* dumpFile = fopen(dumpFileName, "w");
     assert(dumpFile);
 
     fprintf(dumpFile, "digraph\n");
@@ -179,7 +174,8 @@ void dump(tNode* root)
 
     FCLOSE(dumpFile);
 
-    system("dot dump.gv -Tpng -o dump.png");
+    (!strcmp(dumpFileName, kDumpFileName)) ? system("dot dump.gv -Tpng -o dump.png")
+                                           : system("dot diffDump.gv -Tpng -o diffDump.png");
 }
 
 void dumpTreeTraversal(tNode* node, FILE* dumpFile)
@@ -204,8 +200,6 @@ void dumpTreeTraversal(tNode* node, FILE* dumpFile)
         printOperationType(node, dumpFile);
         fprintf(dumpFile, " | ");
     }
-
-
 
     fprintf(dumpFile, "{ left: %p | right: %p }} \"];\n", node->left, node->right);
 
@@ -244,7 +238,7 @@ void dumpTreeTraversalWithArrows(tNode* node, FILE* dumpFile)
     flag = 0;
 }
 
-void printOperationType(tNode* node, FILE* dumpFile)
+void printOperationType(tNode* node, FILE* dumpFile) // NOTE define maybe ?
 {
     assert(node);
     assert(node->type == Operation);
@@ -259,231 +253,144 @@ void printOperationType(tNode* node, FILE* dumpFile)
     }
 }
 
-void writingExpressionToFile(tNode* root)
+tNode* getG()
 {
-    FILE* expressionFile = fopen("expression.txt", "w"); // FIXME const
-
-    goToSubtreeWriting(root, expressionFile);
-
-    FCLOSE(expressionFile);
+    tNode* node = getE();
+    if (s[pos] != '$')
+    {
+        SYNTAXERROR();
+        pos++;
+    }
+    return node;
 }
 
-void goToSubtreeWriting(tNode* node, FILE* expressionFile)
+tNode* getE()
 {
-    if (!node->left && !node->right)
+    tNode* leftNode = getT();
+
+    while (s[pos] == '+' || s[pos] == '-')
     {
-        fprintf(expressionFile, "(%d)", node->value);
-        return;
-    }
-
-    fprintf(expressionFile, "(");
-
-    goToSubtreeWriting(node->left, expressionFile);
-
-    if (node->type == Operation)
-    {
-        // fprintf(expressionFile, "(");
-        printOperationType(node, expressionFile);
-        // fprintf(expressionFile, ")");
-    }
-
-    goToSubtreeWriting(node->right, expressionFile);
-
-    fprintf(expressionFile, ")");
-}
-
-void readingExpressionFromFile(tNode* root)
-{
-    FILE* expressionFile = fopen("expression.txt", "r"); // FIXME const, assert
-
-    fseek(expressionFile, 0, SEEK_END);
-    int64_t fileSize = ftello(expressionFile);
-    fseek(expressionFile, 0, SEEK_SET);
-
-    char* dataArray = (char*)calloc((size_t)fileSize + 1, sizeof(char));
-    assert(dataArray);
-    fread(dataArray, sizeof(char), (size_t)fileSize, expressionFile);
-
-    for (int i = 0; i < fileSize; i++) printf("%c", dataArray[i]); // NOTE DEBUG
-
-    // char* ptr = nullptr;
-    infoNode* dataArrayClear = (infoNode*)calloc(1, sizeof(infoNode));
-    int index = 0;
-
-    int rank = 0;
-    bool firstUseOfStrtokFunction = true;
-
-    printf("\n"); // NOTE DEBUG
-
-    for (int i = 0; i < fileSize; i++)
-    {
-        if (dataArray[i] == '\0') { rank++; continue; }
-        if      (dataArray[i] == '(') { rank++;  }
-        else if (dataArray[i] == ')') { rank--;  }
+        int op = s[pos];
+        pos++;
+        tNode* rightNode = getT();
+        if (op == '+')
+        {
+            leftNode = _ADD(leftNode, rightNode);
+        }
         else
         {
-            dataArrayClear = (infoNode*)realloc(dataArrayClear, (index + 1) * sizeof(infoNode));
-            assert(dataArrayClear);
-
-            dataArrayClear[index].rank = rank;
-            dataArrayClear[index].sequenceNumber = index + 1;
-
-            index++;
-            while (dataArray[i] != '(' && dataArray[i] != ')' && i < fileSize && dataArray[i] != '\0') i++;
-            i--;
+            leftNode = _SUB(leftNode, rightNode);
         }
     }
-printf("\n"); // NOTE DEBUG
-    // for (int j = 0; j < index; j++) printf("_%s_%d_", dataArrayClear[j].data, dataArrayClear[j].rank); // NOTE DEBUG
+    return leftNode;
+}
 
+tNode* getT()
+{
+    tNode* leftNode = getP();
 
-    char* ptr = nullptr;
-    for (int i = 0; i < index; i++)
+    while (s[pos] == '*' || s[pos] == '/')
     {
-        dataArrayClear[i].data = (firstUseOfStrtokFunction) ? strtok(dataArray, "()") : strtok(NULL, "()");
-        firstUseOfStrtokFunction = false;
+        int op = s[pos];
+        pos++;
+        tNode* rightNode = getP();
+        if (op == '*')
+        {
+            leftNode = _MUL(leftNode, rightNode);
+        }
+        else
+        {
+            leftNode = _DIV(leftNode, rightNode);
+        }
     }
-
-    qsort(dataArrayClear, index, sizeof(infoNode), compareNodesByRank);
-    qsort(dataArrayClear, index, sizeof(infoNode), compareNodesOfSameRankInOrder);
-for (int j = 0; j < index; j++) printf("%7d", dataArrayClear[j].rank); // NOTE DEBUG
-printf("\n");
-    for (int j = 0; j < index; j++) printf("%7s", dataArrayClear[j].data, dataArrayClear[j].rank); // NOTE DEBUG
-printf("\n");
-    for (int j = 0; j < index; j++) printf("%7d", dataArrayClear[j].sequenceNumber);
-
-    goToSubtreeReading(root, dataArray, fileSize);
-
-    FREE(dataArrayClear);
-    FREE(dataArray);
-    FCLOSE(expressionFile);
+    return leftNode;
 }
 
-bool isOperation(char symbol)
+tNode* getP()
 {
-    char tmp[8] = {}; tmp[0] = symbol; tmp[1] = '\0';  fprintf(stderr, "_%s_", tmp);
-         if (!strcmp(tmp, kAdd)) return true;
-    else if (!strcmp(tmp, kSub)) return true;
-    else if (!strcmp(tmp, kMul)) return true;
-    else if (!strcmp(tmp, kDiv)) return true;
-    else                         return false;
+    if (s[pos] == '(')
+    {
+        pos++;
+        tNode* node = getE();
+        if (s[pos] != ')')
+            SYNTAXERROR();
+        pos++;
+        return node;
+    }
+    else if (s[pos] == 'x')
+    {
+        pos++;
+        return getV();
+    }
+    else return getN();
 }
 
-int compareNodesByRank(const void* firstNode, const void* secondNode)
+tNode* getV()
 {
-    return ((infoNode*)firstNode)->rank - ((infoNode*)secondNode)->rank;
+    return newNode(Variable, 1, NULL, NULL);
 }
 
-int compareNodesOfSameRankInOrder(const void* firstNode, const void* secondNode)
+tNode* getN()
 {
-    return (((infoNode*)firstNode)->rank == ((infoNode*)secondNode)->rank)
-                ? ((infoNode*)firstNode)->sequenceNumber - ((infoNode*)secondNode)->sequenceNumber
-                : 0;
+    int val = 0;
+    int old_pos = pos;
+    while ('0' <= s[pos] && s[pos] <= '9')
+    {
+        val = val * 10 + s[pos] - '0';
+        pos++;
+    }
+    if (old_pos == pos)
+        SYNTAXERROR();
+
+    return newNode(Number, val, NULL, NULL);
 }
 
-void goToSubtreeReading(tNode* node, char* dataArray, int64_t fileSize)
+void syntaxError(int line)
 {
-    assert(node);
-    assert(dataArray);
-
-    static int pos = 1;
-    // while (pos < fileSize)
-    // {
-    //     switch (dataArray[pos])
-    //     {
-    //         case '(':
-    //         {
-    //             if (isdigit(dataArray[pos + 1]))
-    //             node->left = memoryAllocationForNode();
-    //             node->right = memoryAllocationForNode();
-    //             goToSubtreeReading(node->left, dataArray, fileSize);
-    //             goToSubtreeReading(node->right, dataArray, fileSize);
-//             }
-//             break;
-//             case ')':
-//             {
-//                 return;
-//             }
-//             break;
-//             case isOperation(dataArray[pos]):
-//             {
-//
-//             }
-//             break;
-//             default: assert(0);
-//         }
-//     }
+    fprintf(stderr, "SyntaxError: %d\n", line);
+    exit(0);
 }
 
+tNode* diff(tNode* node)
+{
+    if (node->type == Number   ) return newNode(Number, 0, NULL, NULL);
+    if (node->type == Variable ) return newNode(Number, 1, NULL, NULL);
+    if (node->type == Operation)
+    {
+        switch (node->value)
+        {
+            case Add:
+            {
+                return _ADD(diff(node->left), diff(node->right));
+            }
+            break;
+            case Sub:
+            {
+                return _SUB(diff(node->left), diff(node->right));
+            }
+            break;
+            case Mul:
+            {
+                return _ADD(
+                            _MUL(diff(node->left ), copyNode(node->right)),
+                            _MUL(diff(node->right), copyNode(node->left)));
+            }
+            break;
+            case Div:
+            {
+                return _DIV(
+                            _SUB(
+                                 _MUL(diff(node->left ), copyNode(node->right)),
+                                 _MUL(diff(node->right), copyNode(node->left))),
+                            _MUL(copyNode(node->right), copyNode(node->right)));
+            }
+            break;
+            default: assert(0);
+        }
+    }
+}
 
-// void treeCalculating(tNode* node)
-// {
-//     assert(node);
-//
-//     bool calculationIsPossible = false;
-//     if (node->left->type == Number && node->right->type == Number)
-//     {
-//
-//     }
-// }
-
-
-
-// void readingExpressionFromFile(tNode* root)
-// {
-//     FILE* expressionFile = fopen("expression.txt", "r"); // FIXME const, assert
-//
-//     fseek(expressionFile, 0, SEEK_END);
-//     int64_t fileSize = ftello(expressionFile);
-//     fseek(expressionFile, 0, SEEK_SET);
-//
-//     char* dataArray = (char*)calloc((size_t)fileSize + 1, sizeof(char));
-//     assert(dataArray);
-//     fread(dataArray, sizeof(char), (size_t)fileSize, expressionFile);
-//
-//     for (int i = 0; i < fileSize; i++) printf("%c", dataArray[i]); // NOTE DEBUG
-//
-//     char* ptr = nullptr;
-//     infoNode* dataArrayClear = (infoNode*)calloc(1, sizeof(infoNode));
-//     int index = 0;
-//
-//     int rank = 0;
-//     bool firstUseOfStrtokFunction = true;
-//
-//     printf("\n"); // NOTE DEBUG
-//
-//     for (int i = 0; i < fileSize; i++)
-//     {
-//         if (dataArray[i] == '\0') { rank++; continue; }
-//         if      (dataArray[i] == '(') { rank++;  }
-//         else if (dataArray[i] == ')') { rank--;  }
-//         else
-//         {  printf("_%c_", dataArray[i]);
-//             (firstUseOfStrtokFunction) ? ptr = strtok(dataArray, "(")
-//                                        : ptr = strtok(NULL     , "(");
-//             firstUseOfStrtokFunction = false;
-//             // dataArray[i - 1] = '(';
-//
-//             dataArrayClear = (infoNode*)realloc(dataArrayClear, (index + 1) * sizeof(infoNode));
-//             assert(dataArrayClear);
-//
-//             dataArrayClear[index].data = ptr;
-//             dataArrayClear[index].rank = rank;
-//
-//
-//
-//             index++;
-//             while (dataArray[i] != '(' && dataArray[i] != ')' && i < fileSize && dataArray[i] != '\0') i++;
-//             i--;
-//         }
-//     }
-// printf("\n"); // NOTE DEBUG
-//     // for (int j = 0; j < index; j++) printf("_%s_%d_", dataArrayClear[j].data, dataArrayClear[j].rank); // NOTE DEBUG
-//     for (int j = 0; j < index; j++) printf("_%d_", dataArrayClear[j].rank); // NOTE DEBUG
-//
-//     goToSubtreeReading(root, dataArray, fileSize);
-//
-//     FREE(dataArrayClear);
-//     FREE(dataArray);
-//     FCLOSE(expressionFile);
-// }
+tNode* copyNode(tNode* node)
+{
+    return newNode(node->type, node->value, node->left, node->right);
+}
