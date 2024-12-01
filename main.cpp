@@ -15,6 +15,7 @@ int main()
     dump(diffRoot, kDiffDumpFileName);
 
     treeDtor(diffRoot);
+
     treeDtor(root);
 
     return 0;

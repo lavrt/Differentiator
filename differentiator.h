@@ -5,5 +5,6 @@
 
 tNode* diff(tNode* node);
 tNode* diffDegree(tNode* node);
+tNode* diffLn(tNode* node);
 
 #endif // DIFFERENTIATOR_H

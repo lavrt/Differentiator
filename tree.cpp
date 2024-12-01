@@ -167,6 +167,7 @@ void printOperationType(tNode* node, FILE* dumpFile) // NOTE define maybe ?
         case Mul: fprintf(dumpFile, "%s", kMul); break;
         case Div: fprintf(dumpFile, "%s", kDiv); break;
         case Deg: fprintf(dumpFile, "%s", kDeg); break;
+        case Ln : fprintf(dumpFile, "%s", kLn ); break;
 
         default: assert(0);
     }
@@ -177,4 +178,31 @@ tNode* copyNode(tNode* node)
     return (node)
                   ? newNode(node->type, node->value, copyNode(node->left), copyNode(node->right))
                   : nullptr;
+}
+
+bool subtreeContainsVariable(tNode* node)
+{
+    if (!node) return false;
+
+    static bool presenceOfVariable = false;
+
+    if (node->type == Variable)
+    {
+        presenceOfVariable = true;
+    }
+    else
+    {
+        subtreeContainsVariable(node->left);
+        subtreeContainsVariable(node->right);
+    }
+
+    if (presenceOfVariable)
+    {
+        presenceOfVariable = false;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }

@@ -4,6 +4,7 @@
 #include "node.h"
 
 #include <stdio.h>
+#include <stdbool.h>
 
 #define FREE(ptr_) \
     do { free(ptr_); ptr_ = nullptr; } while(0);
@@ -22,6 +23,7 @@ const char* const kSub = "-";
 const char* const kMul = "*";
 const char* const kDiv = "/";
 const char* const kDeg = "^";
+const char* const kLn  = "ln";
 
 tNode* newNode(NodeType type, int value, tNode* left, tNode* right);
 tNode* memoryAllocationForNode(void);
@@ -31,5 +33,6 @@ void dumpTreeTraversal(tNode* node, FILE* dumpFile);
 void dumpTreeTraversalWithArrows(tNode* node, FILE* dumpFile);
 void printOperationType(tNode* node, FILE* dumpFile);
 tNode* copyNode(tNode* node);
+bool subtreeContainsVariable(tNode* node);
 
 #endif // TREE_H

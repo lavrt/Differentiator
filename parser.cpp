@@ -7,7 +7,7 @@
 #include "dsl.h"
 #include "debug.h"
 
-const char* s = "x*2^3$"; // FIXME
+const char* s = "x^3$"; // FIXME
 int pos = 0; // FIXME
 
 tNode* getG()
@@ -73,6 +73,8 @@ tNode* getD()
         tNode* rightNode = getP();
         leftNode = _DEG(leftNode, rightNode);
     }
+    // else if ()
+
     return leftNode;
 }
 

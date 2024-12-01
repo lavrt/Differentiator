@@ -24,6 +24,7 @@ enum Operations
     Mul = 3,
     Div = 4,
     Deg = 5,
+    Ln  = 6,
 };
 
 #endif // NODE_H
