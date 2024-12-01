@@ -19,12 +19,19 @@ enum NodeType
 {
     Number    = 1,
     Variable  = 2,
-    Operation = 3,
+    Function  = 3,
+    Operation = 4,
 };
 
 const char* const kNumber = "number";
 const char* const kVariable = "variable";
+const char* const kFunction = "function";
 const char* const kOperation = "operation";
+
+enum Functions
+{
+    Ln = 1,
+};
 
 enum Operations
 {
@@ -33,6 +40,7 @@ enum Operations
     Sub = 2,
     Mul = 3,
     Div = 4,
+    Deg = 5,
 };
 
 const char* const kAdd = "+";
@@ -40,6 +48,8 @@ const char* const kSub = "-";
 const char* const kMul = "*";
 const char* const kDiv = "/";
 const char* const kDeg = "^";
+
+const char* const kLn  = "ln";
 
 struct tNode
 {
@@ -61,16 +71,18 @@ void dumpTreeTraversalWithArrows(tNode* node, FILE* dumpFile);
 void printOperationType(tNode* node, FILE* dumpFile);
 tNode* diff(tNode* node);
 tNode* copyNode(tNode* node);
+tNode* diffDegree(tNode* node);
 
-tNode* getP();
 tNode* getG();
 tNode* getE();
 tNode* getT();
+tNode* getD();
+tNode* getP();
 tNode* getN();
 tNode* getV();
 void syntaxError(int line);
 
-const char* s = "5/x$"; // FIXME
+const char* s = "x*2^3$"; // FIXME
 int pos = 0;            // FIXME
 
 int main()
@@ -241,7 +253,7 @@ void dumpTreeTraversalWithArrows(tNode* node, FILE* dumpFile)
 void printOperationType(tNode* node, FILE* dumpFile) // NOTE define maybe ?
 {
     assert(node);
-    assert(node->type == Operation);
+    assert(node->type == Operation || node->type == Function);
 
     switch (node->value)
     {
@@ -249,6 +261,10 @@ void printOperationType(tNode* node, FILE* dumpFile) // NOTE define maybe ?
         case Sub: fprintf(dumpFile, "%s", kSub); break;
         case Mul: fprintf(dumpFile, "%s", kMul); break;
         case Div: fprintf(dumpFile, "%s", kDiv); break;
+        case Deg: fprintf(dumpFile, "%s", kDeg); break;
+
+        case Ln: fprintf(dumpFile, "%s", kLn); break;
+
         default: assert(0);
     }
 }
@@ -287,13 +303,13 @@ tNode* getE()
 
 tNode* getT()
 {
-    tNode* leftNode = getP();
+    tNode* leftNode = getD();
 
     while (s[pos] == '*' || s[pos] == '/')
     {
         int op = s[pos];
         pos++;
-        tNode* rightNode = getP();
+        tNode* rightNode = getD();
         if (op == '*')
         {
             leftNode = _MUL(leftNode, rightNode);
@@ -302,6 +318,19 @@ tNode* getT()
         {
             leftNode = _DIV(leftNode, rightNode);
         }
+    }
+    return leftNode;
+}
+
+tNode* getD()
+{
+    tNode* leftNode = getP();
+
+    if (s[pos] == '^')
+    {
+        pos++;
+        tNode* rightNode = getP();
+        leftNode = _DEG(leftNode, rightNode);
     }
     return leftNode;
 }
@@ -325,24 +354,24 @@ tNode* getP()
     else return getN();
 }
 
-tNode* getV()
-{
-    return newNode(Variable, 1, NULL, NULL);
-}
-
 tNode* getN()
 {
-    int val = 0;
+    int value = 0;
     int old_pos = pos;
     while ('0' <= s[pos] && s[pos] <= '9')
     {
-        val = val * 10 + s[pos] - '0';
+        value = value * 10 + s[pos] - '0';
         pos++;
     }
     if (old_pos == pos)
         SYNTAXERROR();
 
-    return newNode(Number, val, NULL, NULL);
+    return _NUM(value);
+}
+
+tNode* getV()
+{
+    return _VAR(1);
 }
 
 void syntaxError(int line)
@@ -353,8 +382,8 @@ void syntaxError(int line)
 
 tNode* diff(tNode* node)
 {
-    if (node->type == Number   ) return newNode(Number, 0, NULL, NULL);
-    if (node->type == Variable ) return newNode(Number, 1, NULL, NULL);
+    if (node->type == Number   ) return _NUM(0);
+    if (node->type == Variable ) return _NUM(1);
     if (node->type == Operation)
     {
         switch (node->value)
@@ -385,6 +414,11 @@ tNode* diff(tNode* node)
                             _MUL(copyNode(node->right), copyNode(node->right)));
             }
             break;
+            case Deg:
+            {
+                return diffDegree(node);
+            }
+            break;
             default: assert(0);
         }
     }
@@ -392,5 +426,34 @@ tNode* diff(tNode* node)
 
 tNode* copyNode(tNode* node)
 {
-    return newNode(node->type, node->value, node->left, node->right);
+    return (node)
+                  ? newNode(node->type, node->value, copyNode(node->left), copyNode(node->right))
+                  : nullptr;
 }
+
+tNode* diffDegree(tNode* node)
+{
+    if (node->left->type == Variable && node->right->type == Number)
+    {
+        return _MUL(
+                    _NUM(node->right->value),
+                    _DEG(
+                         _VAR(node->left->value),
+                         _NUM(node->right->value - 1)));
+    }
+    else if (node->left->type == Number && node->right->type == Variable)
+    {
+        // TODO
+    }
+    else if (node->left->type == Number && node->right->type == Number)
+    {
+        return _NUM(0);
+    }
+    else if (node->left->type == Variable && node->right->type == Variable)
+    {
+        // TODO
+    }
+    else assert(0);
+}
+
+
