@@ -3,13 +3,14 @@
 
 #include "node.h"
 
-tNode* getG();
-tNode* getE();
-tNode* getT();
-tNode* getD();
-tNode* getP();
-tNode* getN();
-tNode* getV();
-[[noreturn]] void syntaxError();
+tNode* getGeneral();
+tNode* getExpression();
+tNode* getMultiplication();
+tNode* getDegree();
+tNode* getParentheses();
+tNode* getNumber();
+tNode* getVariable();
+tNode* getFunction();
+[[noreturn]] void SyntaxError(int lines);
 
 #endif // PARSER_H

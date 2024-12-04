@@ -5,7 +5,7 @@ enum NodeType
 {
     Number    = 1,
     Variable  = 2,
-    Operation = 4,
+    Operation = 3,
 };
 
 struct tNode
@@ -25,6 +25,11 @@ enum Operations
     Div = 4,
     Deg = 5,
     Ln  = 6,
+    Log = 7,
+    Sin = 8,
+    Cos = 9,
+    Tg  = 10,
+    Ctg = 11,
 };
 
 #endif // NODE_H

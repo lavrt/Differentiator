@@ -24,6 +24,11 @@ const char* const kMul = "*";
 const char* const kDiv = "/";
 const char* const kDeg = "^";
 const char* const kLn  = "ln";
+const char* const kLog = "log";
+const char* const kSin = "sin";
+const char* const kCos = "cos";
+const char* const kTg  = "tg";
+const char* const kCtg = "ctg";
 
 tNode* newNode(NodeType type, int value, tNode* left, tNode* right);
 tNode* memoryAllocationForNode(void);

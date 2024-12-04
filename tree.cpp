@@ -34,9 +34,6 @@ tNode* newNode(NodeType type, int value, tNode* left, tNode* right)
         break;
         case Operation:
         {
-            assert(left);
-            assert(right);
-
             node = memoryAllocationForNode();
 
             node->type = Operation;
@@ -81,8 +78,8 @@ void dump(tNode* root, const char* const dumpFileName)
     fprintf(dumpFile, "digraph\n");
     fprintf(dumpFile, "{\n    ");
     fprintf(dumpFile, "rankdir = TB;\n    ");
-    fprintf(dumpFile, "node [shape=record,style = rounded,color=\"#252A34\",penwidth = 2.5];\n    ");
-    fprintf(dumpFile, "bgcolor = \"#E7ECEF\";\n\n");
+    fprintf(dumpFile, "node [shape=record,style = filled,penwidth = 2.5];\n    ");
+    fprintf(dumpFile, "bgcolor = \"#27a300\";\n\n");
 
     dumpTreeTraversal(root, dumpFile);
     dumpTreeTraversalWithArrows(root, dumpFile);
@@ -118,7 +115,20 @@ void dumpTreeTraversal(tNode* node, FILE* dumpFile)
         fprintf(dumpFile, " | ");
     }
 
-    fprintf(dumpFile, "{ left: %p | right: %p }} \"];\n", node->left, node->right);
+    fprintf(dumpFile, "{ left: %p | right: %p }} \"", node->left, node->right);
+
+    if (node->type == Number)
+    {
+        fprintf(dumpFile, ", color = \"#fbf8cc\"];\n");
+    }
+    if (node->type == Variable)
+    {
+        fprintf(dumpFile, ", color = \"#f1c0e8\"];\n");
+    }
+    if (node->type == Operation)
+    {
+        fprintf(dumpFile, ", color = \"#b9fbc0\"];\n");
+    }
 
     if (node->left)
     {
@@ -168,6 +178,10 @@ void printOperationType(tNode* node, FILE* dumpFile) // NOTE define maybe ?
         case Div: fprintf(dumpFile, "%s", kDiv); break;
         case Deg: fprintf(dumpFile, "%s", kDeg); break;
         case Ln : fprintf(dumpFile, "%s", kLn ); break;
+        case Sin: fprintf(dumpFile, "%s", kSin); break;
+        case Cos: fprintf(dumpFile, "%s", kCos); break;
+        case Tg : fprintf(dumpFile, "%s", kTg ); break;
+        case Ctg: fprintf(dumpFile, "%s", kCtg); break;
 
         default: assert(0);
     }

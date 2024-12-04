@@ -3,17 +3,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "tree.h"
 #include "dsl.h"
 #include "debug.h"
 
-const char* s = "10+10*x$"; // FIXME
-int pos = 0; // FIXME
+const char* s = "sin(ctg(2*x+3))^2$"; // FIXME
+size_t pos = 0; // FIXME
 
-tNode* getG()
+#define syntaxError() SyntaxError(__LINE__) // FIXME
+
+tNode* getGeneral()
 {
-    tNode* node = getE();
+    tNode* node = getExpression();
     if (s[pos] != '$')
     {
         syntaxError();
@@ -22,68 +26,68 @@ tNode* getG()
     return node;
 }
 
-tNode* getE()
+tNode* getExpression()
 {
-    tNode* leftNode = getT();
+    tNode* leftNode = getMultiplication();
 
     while (s[pos] == '+' || s[pos] == '-')
     {
         int op = s[pos];
         pos++;
-        tNode* rightNode = getT();
+        tNode* rightNode = getMultiplication();
         if (op == '+')
         {
-            leftNode = _ADD(leftNode, rightNode);
+            leftNode = ADD(leftNode, rightNode);
         }
         else
         {
-            leftNode = _SUB(leftNode, rightNode);
+            leftNode = SUB(leftNode, rightNode);
         }
     }
     return leftNode;
 }
 
-tNode* getT()
+tNode* getMultiplication()
 {
-    tNode* leftNode = getD();
+    tNode* leftNode = getDegree();
 
     while (s[pos] == '*' || s[pos] == '/')
     {
         int op = s[pos];
         pos++;
-        tNode* rightNode = getD();
+        tNode* rightNode = getDegree();
         if (op == '*')
         {
-            leftNode = _MUL(leftNode, rightNode);
+            leftNode = MUL(leftNode, rightNode);
         }
         else
         {
-            leftNode = _DIV(leftNode, rightNode);
+            leftNode = DIV(leftNode, rightNode);
         }
     }
     return leftNode;
 }
 
-tNode* getD()
+tNode* getDegree()
 {
-    tNode* leftNode = getP();
+    tNode* leftNode = getParentheses();
 
     if (s[pos] == '^')
     {
         pos++;
-        tNode* rightNode = getP();
-        leftNode = _DEG(leftNode, rightNode);
+        tNode* rightNode = getParentheses();
+        leftNode = DEG(leftNode, rightNode);
     }
 
     return leftNode;
 }
 
-tNode* getP()
-{
+tNode* getParentheses()
+{fprintf(stderr, "%c", s[pos]);
     if (s[pos] == '(')
     {
         pos++;
-        tNode* node = getE();
+        tNode* node = getExpression();
         if (s[pos] != ')')
             syntaxError();
         pos++;
@@ -92,16 +96,77 @@ tNode* getP()
     else if (s[pos] == 'x')
     {
         pos++;
-        return getV();
+        return getVariable();
     }
-    else return getN();
+    else if (isdigit(s[pos])) return getNumber();
+    else if (isalpha(s[pos])) return getFunction();
 }
 
-tNode* getN()
+tNode* getFunction()
+{
+    char* word = (char*)calloc(32, sizeof(char)); //FIXME
+    assert(word);
+
+    sscanf(s+pos, "%[a-z]", word);
+
+    if (!strcmp(word, kLn))
+    {
+        pos += strlen(word);
+        if (s[pos] != '(') syntaxError();
+        pos++;
+        tNode* node = newNode(Operation, Ln, getExpression(), NULL);
+        if (s[pos] != ')') syntaxError();
+        pos++;
+        return node;
+    }
+    else if (!strcmp(word, kSin))
+    {
+        pos += strlen(word);
+        if (s[pos] != '(') syntaxError();
+        pos++;
+        tNode* node = newNode(Operation, Sin, getExpression(), NULL);
+        if (s[pos] != ')') syntaxError();
+        pos++;
+        return node;
+    }
+    else if (!strcmp(word, kCos))
+    {
+        pos += strlen(word);
+        if (s[pos] != '(') syntaxError();
+        pos++;
+        tNode* node = newNode(Operation, Cos, getExpression(), NULL);
+        if (s[pos] != ')') syntaxError();
+        pos++;
+        return node;
+    }
+    else if (!strcmp(word, kTg))
+    {
+        pos += strlen(word);
+        if (s[pos] != '(') syntaxError();
+        pos++;
+        tNode* node = newNode(Operation, Tg, getExpression(), NULL);
+        if (s[pos] != ')') syntaxError();
+        pos++;
+        return node;
+    }
+    else if (!strcmp(word, kCtg))
+    {
+        pos += strlen(word);
+        if (s[pos] != '(') syntaxError();
+        pos++;
+        tNode* node = newNode(Operation, Ctg, getExpression(), NULL);
+        if (s[pos] != ')') syntaxError();
+        pos++;
+        return node;
+    }
+    else syntaxError();
+}
+
+tNode* getNumber()
 {
     int value = 0;
-    int old_pos = pos;
-    while ('0' <= s[pos] && s[pos] <= '9')
+    size_t old_pos = pos;
+    while (isdigit(s[pos]))
     {
         value = value * 10 + s[pos] - '0';
         pos++;
@@ -109,16 +174,16 @@ tNode* getN()
     if (old_pos == pos)
         syntaxError();
 
-    return _NUM(value);
+    return NUM(value);
 }
 
-tNode* getV()
+tNode* getVariable()
 {
-    return _VAR(1);
+    return VAR(1);
 }
 
-void syntaxError()
+void SyntaxError(int lines)
 {
-    fprintf(stderr, "Syntax error\n");
+    fprintf(stderr, "Syntax error: %d\n", lines);
     exit(0);
 }

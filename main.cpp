@@ -6,15 +6,15 @@
 
 int main()
 {
-    tNode* root = getG();
+    tNode* root = getGeneral();
 
     dump(root, kDumpFileName);
 
-    tNode* diffRoot = diff(root);
-
-    dump(diffRoot, kDiffDumpFileName);
-
-    treeDtor(diffRoot);
+//     tNode* diffRoot = diff(root);
+//
+//     dump(diffRoot, kDiffDumpFileName);
+//
+//     treeDtor(diffRoot);
 
     treeDtor(root);
 
