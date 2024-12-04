@@ -2,12 +2,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "tree.h"
 #include "dsl.h"
 #include "debug.h"
 
-const char* s = "x^3$"; // FIXME
+const char* s = "10+10*x$"; // FIXME
 int pos = 0; // FIXME
 
 tNode* getG()
@@ -73,7 +74,6 @@ tNode* getD()
         tNode* rightNode = getP();
         leftNode = _DEG(leftNode, rightNode);
     }
-    // else if ()
 
     return leftNode;
 }
