@@ -26,10 +26,11 @@ enum Operations
     Deg = 5,
     Ln  = 6,
     Log = 7,
-    Sin = 8,
-    Cos = 9,
-    Tg  = 10,
-    Ctg = 11,
+    Lg  = 8,
+    Sin = 9,
+    Cos = 10,
+    Tg  = 11,
+    Ctg = 12,
 };
 
 #endif // NODE_H

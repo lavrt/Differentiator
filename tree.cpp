@@ -178,6 +178,8 @@ void printOperationType(tNode* node, FILE* dumpFile) // NOTE define maybe ?
         case Div: fprintf(dumpFile, "%s", kDiv); break;
         case Deg: fprintf(dumpFile, "%s", kDeg); break;
         case Ln : fprintf(dumpFile, "%s", kLn ); break;
+        case Log: fprintf(dumpFile, "%s", kLog); break;
+        case Lg : fprintf(dumpFile, "%s", kLg ); break;
         case Sin: fprintf(dumpFile, "%s", kSin); break;
         case Cos: fprintf(dumpFile, "%s", kCos); break;
         case Tg : fprintf(dumpFile, "%s", kTg ); break;

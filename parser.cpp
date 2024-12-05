@@ -10,7 +10,7 @@
 #include "dsl.h"
 #include "debug.h"
 
-const char* s = "x^(x)$"; // FIXME
+const char* s = "lg(10*x)$"; // FIXME
 size_t pos = 0; // FIXME
 
 #define syntaxError() SyntaxError(__LINE__) // FIXME
@@ -117,6 +117,33 @@ tNode* getFunction()
         if (s[pos] != '(') syntaxError();
         pos++;
         tNode* node = newNode(Operation, Ln, getExpression(), NULL);
+        if (s[pos] != ')') syntaxError();
+        pos++;
+        return node;
+    }
+    else if (!strcmp(word, kLog))
+    {
+        pos += strlen(word);
+        FREE(word);
+        if (s[pos] != '(') syntaxError();
+        pos++;
+        tNode* leftNode = getExpression();
+        if (s[pos] != ')') syntaxError();
+        pos++;
+        if (s[pos] != '(') syntaxError();
+        pos++;
+        tNode* node = newNode(Operation, Log, leftNode, getExpression());
+        if (s[pos] != ')') syntaxError();
+        pos++;
+        return node;
+    }
+    else if (!strcmp(word, kLg))
+    {
+        pos += strlen(word);
+        FREE(word);
+        if (s[pos] != '(') syntaxError();
+        pos++;
+        tNode* node = newNode(Operation, Lg, getExpression(), NULL);
         if (s[pos] != ')') syntaxError();
         pos++;
         return node;

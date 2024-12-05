@@ -25,6 +25,7 @@ const char* const kDiv = "/";
 const char* const kDeg = "^";
 const char* const kLn  = "ln";
 const char* const kLog = "log";
+const char* const kLg  = "lg";
 const char* const kSin = "sin";
 const char* const kCos = "cos";
 const char* const kTg  = "tg";
