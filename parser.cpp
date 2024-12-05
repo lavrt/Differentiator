@@ -10,7 +10,7 @@
 #include "dsl.h"
 #include "debug.h"
 
-const char* s = "sin(ctg(2*x+3))^2$"; // FIXME
+const char* s = "x^(x)$"; // FIXME
 size_t pos = 0; // FIXME
 
 #define syntaxError() SyntaxError(__LINE__) // FIXME
@@ -83,7 +83,7 @@ tNode* getDegree()
 }
 
 tNode* getParentheses()
-{fprintf(stderr, "%c", s[pos]);
+{
     if (s[pos] == '(')
     {
         pos++;
@@ -100,6 +100,7 @@ tNode* getParentheses()
     }
     else if (isdigit(s[pos])) return getNumber();
     else if (isalpha(s[pos])) return getFunction();
+    else assert(0);
 }
 
 tNode* getFunction()
@@ -112,6 +113,7 @@ tNode* getFunction()
     if (!strcmp(word, kLn))
     {
         pos += strlen(word);
+        FREE(word);
         if (s[pos] != '(') syntaxError();
         pos++;
         tNode* node = newNode(Operation, Ln, getExpression(), NULL);
@@ -122,6 +124,7 @@ tNode* getFunction()
     else if (!strcmp(word, kSin))
     {
         pos += strlen(word);
+        FREE(word);
         if (s[pos] != '(') syntaxError();
         pos++;
         tNode* node = newNode(Operation, Sin, getExpression(), NULL);
@@ -132,6 +135,7 @@ tNode* getFunction()
     else if (!strcmp(word, kCos))
     {
         pos += strlen(word);
+        FREE(word);
         if (s[pos] != '(') syntaxError();
         pos++;
         tNode* node = newNode(Operation, Cos, getExpression(), NULL);
@@ -142,6 +146,7 @@ tNode* getFunction()
     else if (!strcmp(word, kTg))
     {
         pos += strlen(word);
+        FREE(word);
         if (s[pos] != '(') syntaxError();
         pos++;
         tNode* node = newNode(Operation, Tg, getExpression(), NULL);
@@ -152,6 +157,7 @@ tNode* getFunction()
     else if (!strcmp(word, kCtg))
     {
         pos += strlen(word);
+        FREE(word);
         if (s[pos] != '(') syntaxError();
         pos++;
         tNode* node = newNode(Operation, Ctg, getExpression(), NULL);
@@ -159,7 +165,11 @@ tNode* getFunction()
         pos++;
         return node;
     }
-    else syntaxError();
+    else
+    {
+        FREE(word);
+        syntaxError();
+    }
 }
 
 tNode* getNumber()

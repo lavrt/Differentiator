@@ -198,6 +198,7 @@ bool subtreeContainsVariable(tNode* node)
 {
     if (!node) return false;
 
+    static int rank = 0;
     static bool presenceOfVariable = false;
 
     if (node->type == Variable)
@@ -206,11 +207,13 @@ bool subtreeContainsVariable(tNode* node)
     }
     else
     {
+        rank++;
         subtreeContainsVariable(node->left);
         subtreeContainsVariable(node->right);
+        rank--;
     }
 
-    if (presenceOfVariable)
+    if (presenceOfVariable && !rank)
     {
         presenceOfVariable = false;
         return true;
