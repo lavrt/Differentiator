@@ -8,7 +8,7 @@
 
 tNode* newNode(NodeType type, int value, tNode* left, tNode* right)
 {
-    tNode* node = nullptr;
+    tNode* node = NULL;
 
     switch (type)
     {
@@ -184,6 +184,7 @@ void printOperationType(tNode* node, FILE* dumpFile) // NOTE define maybe ?
         case Cos: fprintf(dumpFile, "%s", kCos); break;
         case Tg : fprintf(dumpFile, "%s", kTg ); break;
         case Ctg: fprintf(dumpFile, "%s", kCtg); break;
+        case uSub:fprintf(dumpFile, "%s", kSub); break;
 
         default: assert(0);
     }
@@ -193,7 +194,7 @@ tNode* copyNode(tNode* node)
 {
     return (node)
                   ? newNode(node->type, node->value, copyNode(node->left), copyNode(node->right))
-                  : nullptr;
+                  : NULL;
 }
 
 bool subtreeContainsVariable(tNode* node)

@@ -10,7 +10,7 @@
 #include "dsl.h"
 #include "debug.h"
 
-const char* s = "lg(10*x)$"; // FIXME
+const char* s = "55*cos(x)+28*x^2$"; /*10*x^2+20*x+333$";*/ // FIXME add file
 size_t pos = 0; // FIXME
 
 #define syntaxError() SyntaxError(__LINE__) // FIXME
@@ -110,7 +110,7 @@ tNode* getFunction()
 
     sscanf(s+pos, "%[a-z]", word);
 
-    if (!strcmp(word, kLn))
+    if (!strcmp(word, kLn)) // FIXME copypaste
     {
         pos += strlen(word);
         FREE(word);
@@ -222,5 +222,6 @@ tNode* getVariable()
 void SyntaxError(int lines)
 {
     fprintf(stderr, "Syntax error: %d\n", lines);
-    exit(0);
+
+    exit(EXIT_FAILURE);
 }

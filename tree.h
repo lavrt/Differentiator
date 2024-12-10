@@ -7,9 +7,9 @@
 #include <stdbool.h>
 
 #define FREE(ptr_) \
-    do { free(ptr_); ptr_ = nullptr; } while(0);
+    do { free(ptr_); ptr_ = NULL; } while(0);
 #define FCLOSE(ptr_) \
-    do { fclose(ptr_); ptr_ = nullptr; } while(0);
+    do { fclose(ptr_); ptr_ = NULL; } while(0);
 
 const char* const kDumpFileName = "dump.gv";
 const char* const kDiffDumpFileName = "diffDump.gv";

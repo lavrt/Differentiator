@@ -3,16 +3,19 @@
 #include "node.h"
 #include "tree.h"
 #include "differentiator.h"
+#include "latex.h"
 
 int main()
 {
-    tNode* root = getGeneral();
+    tNode* root = getGeneral(); // FIXME naming
 
     dump(root, kDumpFileName);
 
     tNode* diffRoot = diff(root);
 
     dump(diffRoot, kDiffDumpFileName);
+
+    latexGeneration(diffRoot);
 
     treeDtor(diffRoot);
 

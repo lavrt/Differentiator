@@ -31,6 +31,7 @@ enum Operations
     Cos = 10,
     Tg  = 11,
     Ctg = 12,
+    uSub = 13,
 };
 
 #endif // NODE_H
