@@ -24,8 +24,6 @@ void latexGeneration(tNode* root)
             "\\section*{Differentiation of a mathematical expression}\n"
             "\\end{center}\n\n");
 
-    int numberOfSimplifications = 0;
-
     bool expressionIsBeingConverted = true;
     while (expressionIsBeingConverted)
     {
@@ -33,9 +31,7 @@ void latexGeneration(tNode* root)
         dumpLatexTreeTraversal(root, latexFile);
         fprintf(latexFile, "\\]\n");
 
-        simplificationByCalc(root, &numberOfSimplifications);
-        expressionIsBeingConverted = (numberOfSimplifications) ? true : false;
-        numberOfSimplifications = 0;
+        expressionIsBeingConverted = (simplificationByCalc(root)) ? true : false;
     }
 
     fprintf(latexFile, "\n\\end{document}\n");
@@ -54,7 +50,7 @@ void dumpLatexTreeTraversal(tNode* node, FILE* latexFile)
     }
     else if (node->type == Variable)
     {
-        fprintf(latexFile, "x"); // FIXME
+        fprintf(latexFile, "x");
     }
     else if (node->type == Operation)
     {

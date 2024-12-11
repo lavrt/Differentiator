@@ -7,47 +7,50 @@
 #include <assert.h>
 #include <stdlib.h>
 
-void simplificationByCalc(tNode* node, int* counter)
+int simplificationByCalc(tNode* node)
 {
-    if (node->type != Operation) return;
+    int counter = 0;
 
-    if (node->left->type == Number && node->right->type == Number)
+    assert(node->type == Operation);
+
+    if (node->left  && node->right
+        && node->left->type == Number && node->right->type == Number)
     {
+        counter++;
+
         switch (node->value)
         {
             case Add:
             {
                 node->type = Number;
                 node->value = node->left->value + node->right->value;
-                FREE(node->left);
-                FREE(node->right);
+                FREE(node->left); FREE(node->right);
             }
             break;
             case Sub:
             {
                 node->type = Number;
                 node->value = node->left->value - node->right->value;
-                FREE(node->left);
-                FREE(node->right);
+                FREE(node->left); FREE(node->right);
             }
             break;
             case Mul:
             {
                 node->type = Number;
                 node->value = node->left->value * node->right->value;
-                FREE(node->left);
-                FREE(node->right);
+                FREE(node->left); FREE(node->right);
             }
             break;
             default:;
         }
-        (*counter)++;
     }
 
     if (node->type == Operation && node->value == Add
         && ((node->left->type == Number && node->left->value == 0)
         || (node->right->type == Number && node->right->value == 0)))
     {
+        counter++;
+
         if (node->left->value == 0)
         {
             FREE(node->left);
@@ -74,13 +77,14 @@ void simplificationByCalc(tNode* node, int* counter)
 
             FREE(oldNode);
         }
-        (*counter)++;
     }
 
     if (node->type == Operation && node->value == Sub
         && ((node->right->type == Number && node->right->value == 0)
         || (node->left->type == Number && node->left->value == 0)))
     {
+        counter++;
+
         if (node->right->value == 0)
         {
             FREE(node->right);
@@ -101,26 +105,28 @@ void simplificationByCalc(tNode* node, int* counter)
             node->right = NULL;
             node->value = uSub;
         }
-        (*counter)++;
     }
 
     if (node->type == Operation && node->value == Mul
         && ((node->left->type == Number && node->left->value == 0)
         || (node->right->type == Number && node->right->value == 0)))
     {
+        counter++;
+
         node->type = Number;
         node->value = 0;
         treeDtor(node->left);
         treeDtor(node->right);
         node->left = NULL;
         node->right = NULL;
-        (*counter)++;
     }
 
     if (node->type == Operation && node->value == Mul
         && ((node->left->type == Number && node->left->value == 1)
         || (node->right->type == Number && node->right->value == 1)))
     {
+        counter++;
+
         if (node->left->value == 1)
         {
             FREE(node->left);
@@ -147,12 +153,13 @@ void simplificationByCalc(tNode* node, int* counter)
 
             FREE(oldNode);
         }
-        (*counter)++;
     }
 
     if (node->type == Operation && node->value == Div
         && node->right->type == Number && node->right->value == 1)
     {
+        counter++;
+
         FREE(node->right);
 
         tNode* oldNode = node->left;
@@ -163,14 +170,14 @@ void simplificationByCalc(tNode* node, int* counter)
         node->left = node->left->left;
 
         FREE(oldNode);
-
-        (*counter)++;
     }
 
     if (node->type == Operation && node->value == Deg
         && ((node->right->type == Number && node->right->value == 0)
         || (node->right->type == Number && node->right->value == 1)))
     {
+        counter++;
+
         if (node->right->value == 0)
         {
             FREE(node->right);
@@ -192,11 +199,12 @@ void simplificationByCalc(tNode* node, int* counter)
 
             FREE(oldNode);
         }
-        (*counter)++;
     }
 
-    if (node->left && node->left->type == Operation) simplificationByCalc(node->left, counter);
-    if (node->right && node->right->type == Operation) simplificationByCalc(node->right, counter);
+    if (node->left && (node->left->type == Operation)) simplificationByCalc(node->left);
+    if (node->right && (node->right->type == Operation)) simplificationByCalc(node->right);
+
+    return counter;
 }
 
 tNode* diff(tNode* node)

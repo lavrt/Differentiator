@@ -4,7 +4,7 @@
 #include "node.h"
 
 tNode* diff(tNode* root);
-void simplificationByCalc(tNode* node, int* counter);
+int simplificationByCalc(tNode* node);
 
 tNode* diffAdd(tNode* node);
 tNode* diffSub(tNode* node);

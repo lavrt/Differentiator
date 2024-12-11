@@ -79,7 +79,7 @@ void dump(tNode* root, const char* const dumpFileName)
     fprintf(dumpFile, "{\n    ");
     fprintf(dumpFile, "rankdir = TB;\n    ");
     fprintf(dumpFile, "node [shape=record,style = filled,penwidth = 2.5];\n    ");
-    fprintf(dumpFile, "bgcolor = \"#27a300\";\n\n");
+    fprintf(dumpFile, "bgcolor = \"#FDFBE4\";\n\n");
 
     dumpTreeTraversal(root, dumpFile);
     dumpTreeTraversalWithArrows(root, dumpFile);
@@ -119,15 +119,15 @@ void dumpTreeTraversal(tNode* node, FILE* dumpFile)
 
     if (node->type == Number)
     {
-        fprintf(dumpFile, ", color = \"#fbf8cc\"];\n");
+        fprintf(dumpFile, ", color = \"#DBD4FF\"];\n");
     }
     if (node->type == Variable)
     {
-        fprintf(dumpFile, ", color = \"#f1c0e8\"];\n");
+        fprintf(dumpFile, ", color = \"#EBAEE6\"];\n");
     }
     if (node->type == Operation)
     {
-        fprintf(dumpFile, ", color = \"#b9fbc0\"];\n");
+        fprintf(dumpFile, ", color = \"#E8D59E\"];\n");
     }
 
     if (node->left)
