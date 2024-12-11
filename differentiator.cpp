@@ -9,26 +9,25 @@
 
 // static --------------------------------------------------------------------------------------------------------------
 
-static tNode* diffAdd(tNode* node);
-static tNode* diffSub(tNode* node);
-static tNode* diffMul(tNode* node);
-static tNode* diffDiv(tNode* node);
-static tNode* diffDeg(tNode* node);
-static tNode* diffLn (tNode* node);
-static tNode* diffLog(tNode* node);
-static tNode* diffLg (tNode* node);
-static tNode* diffSin(tNode* node);
-static tNode* diffCos(tNode* node);
-static tNode* diffTg (tNode* node);
-static tNode* diffCtg(tNode* node);
+static tNode* diffAdd (tNode* node);
+static tNode* diffSub (tNode* node);
+static tNode* diffMul (tNode* node);
+static tNode* diffDiv (tNode* node);
+static tNode* diffDeg (tNode* node);
+static tNode* diffLn  (tNode* node);
+static tNode* diffLog (tNode* node);
+static tNode* diffLg  (tNode* node);
+static tNode* diffSin (tNode* node);
+static tNode* diffCos (tNode* node);
+static tNode* diffTg  (tNode* node);
+static tNode* diffCtg (tNode* node);
+static tNode* diffuSub(tNode* node);
 
 // global --------------------------------------------------------------------------------------------------------------
 
 void simplificationByCalc(tNode* node, int* counter)
 {
     assert(node);
-
-    assert(node->type == Operation);
 
     if (node->left  && node->right
         && node->left->type == Number && node->right->type == Number)
@@ -230,20 +229,22 @@ tNode* diff(tNode* node)
     if (node->type == Variable ) return NUM(1);
     if (node->type == Operation)
     {
+        fprintf(stderr, "%d ", node->value);
         switch (node->value)
         {
-            case Add: return diffAdd(node); break;
-            case Sub: return diffSub(node); break;
-            case Mul: return diffMul(node); break;
-            case Div: return diffDiv(node); break;
-            case Deg: return diffDeg(node); break;
-            case Ln : return diffLn (node); break;
-            case Log: return diffLog(node); break;
-            case Lg : return diffLg (node); break;
-            case Sin: return diffSin(node); break;
-            case Cos: return diffCos(node); break;
-            case Tg : return diffTg (node); break;
-            case Ctg: return diffCtg(node); break;
+            case Add : return diffAdd (node); break;
+            case Sub : return diffSub (node); break;
+            case Mul : return diffMul (node); break;
+            case Div : return diffDiv (node); break;
+            case Deg : return diffDeg (node); break;
+            case Ln  : return diffLn  (node); break;
+            case Log : return diffLog (node); break;
+            case Lg  : return diffLg  (node); break;
+            case Sin : return diffSin (node); break;
+            case Cos : return diffCos (node); break;
+            case Tg  : return diffTg  (node); break;
+            case Ctg : return diffCtg (node); break;
+            case uSub: return diffuSub(node); break;
 
             default: assert(0);
         }
@@ -509,4 +510,11 @@ static tNode* diffCtg(tNode* node)
                 )
             )
         );
+}
+
+static tNode* diffuSub(tNode* node)
+{
+    assert(node);
+
+    return newNode(Operation, uSub, copyNode(node->left), NULL);
 }
