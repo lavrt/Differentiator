@@ -7,7 +7,7 @@
 
 int main()
 {
-    tNode* root = getGeneral(); // FIXME naming
+    tNode* root = runParser();
 
     dump(root, kDumpFileName);
 

@@ -81,8 +81,6 @@ void simplificationByCalc(tNode* node, int* counter)
         && ((node->right->type == Number && node->right->value == 0)
         || (node->left->type == Number && node->left->value == 0)))
     {
-        fprintf(stderr, "%p\n", node->left->right);
-
         if (node->right->value == 0)
         {
             FREE(node->right);
@@ -383,7 +381,7 @@ tNode* diffLog(tNode* node)
             );
 
     }
-    else if (subtreeContainsVariable(node->left) && subtreeContainsVariable(node->right)) // FIXME
+    else if (subtreeContainsVariable(node->left) && subtreeContainsVariable(node->right))
     {
         return
             DIV(

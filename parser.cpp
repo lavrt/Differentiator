@@ -10,31 +10,54 @@
 #include "dsl.h"
 #include "debug.h"
 
-const char* s = "55*cos(x)+28*x^2$"; /*10*x^2+20*x+333$";*/ // FIXME add file
-size_t pos = 0; // FIXME
-
-#define syntaxError() SyntaxError(__LINE__) // FIXME
-
-tNode* getGeneral()
+tNode* runParser()
 {
-    tNode* node = getExpression();
-    if (s[pos] != '$')
+    FILE* inputFile = fopen(kNameOfInputFile, "r");
+    assert(inputFile);
+
+    Data token = {};
+
+    fread(token.string, sizeof(char), getFileSize(inputFile), inputFile);
+
+    tNode* diffRoot = getGrammar(&token);
+
+    FCLOSE(inputFile);
+
+    return diffRoot;
+}
+
+size_t getFileSize(FILE* file)
+{
+    assert(file);
+
+    long currentPos = ftell(file);
+    fseek(file, 0, SEEK_END);
+    size_t size = (size_t)ftell(file);
+    fseek(file, currentPos, SEEK_SET);
+
+    return size;
+}
+
+tNode* getGrammar(Data* token)
+{
+    tNode* node = getExpression(token);
+    if (token->string[token->pos] != '$')
     {
         syntaxError();
-        pos++;
+        token->pos++;
     }
     return node;
 }
 
-tNode* getExpression()
+tNode* getExpression(Data* token)
 {
-    tNode* leftNode = getMultiplication();
+    tNode* leftNode = getMultiplication(token);
 
-    while (s[pos] == '+' || s[pos] == '-')
+    while (token->string[token->pos] == '+' || token->string[token->pos] == '-')
     {
-        int op = s[pos];
-        pos++;
-        tNode* rightNode = getMultiplication();
+        int op = token->string[token->pos];
+        token->pos++;
+        tNode* rightNode = getMultiplication(token);
         if (op == '+')
         {
             leftNode = ADD(leftNode, rightNode);
@@ -47,15 +70,15 @@ tNode* getExpression()
     return leftNode;
 }
 
-tNode* getMultiplication()
+tNode* getMultiplication(Data* token)
 {
-    tNode* leftNode = getDegree();
+    tNode* leftNode = getDegree(token);
 
-    while (s[pos] == '*' || s[pos] == '/')
+    while (token->string[token->pos] == '*' || token->string[token->pos] == '/')
     {
-        int op = s[pos];
-        pos++;
-        tNode* rightNode = getDegree();
+        int op = token->string[token->pos];
+        token->pos++;
+        tNode* rightNode = getDegree(token);
         if (op == '*')
         {
             leftNode = MUL(leftNode, rightNode);
@@ -68,128 +91,120 @@ tNode* getMultiplication()
     return leftNode;
 }
 
-tNode* getDegree()
+tNode* getDegree(Data* token)
 {
-    tNode* leftNode = getParentheses();
+    tNode* leftNode = getParentheses(token);
 
-    if (s[pos] == '^')
+    if (token->string[token->pos] == '^')
     {
-        pos++;
-        tNode* rightNode = getParentheses();
+        token->pos++;
+        tNode* rightNode = getParentheses(token);
         leftNode = DEG(leftNode, rightNode);
     }
 
     return leftNode;
 }
 
-tNode* getParentheses()
+tNode* getParentheses(Data* token)
 {
-    if (s[pos] == '(')
+    if (token->string[token->pos] == '(')
     {
-        pos++;
-        tNode* node = getExpression();
-        if (s[pos] != ')')
+        token->pos++;
+        tNode* node = getExpression(token);
+        if (token->string[token->pos] != ')')
             syntaxError();
-        pos++;
+        token->pos++;
         return node;
     }
-    else if (s[pos] == 'x')
+    else if (token->string[token->pos] == 'x')
     {
-        pos++;
-        return getVariable();
+        token->pos++;
+        return getVariable(token);
     }
-    else if (isdigit(s[pos])) return getNumber();
-    else if (isalpha(s[pos])) return getFunction();
+    else if (isdigit(token->string[token->pos])) return getNumber(token);
+    else if (isalpha(token->string[token->pos])) return getFunction(token);
     else assert(0);
 }
 
-tNode* getFunction()
+tNode* getFunction(Data* token)
 {
-    char* word = (char*)calloc(32, sizeof(char)); //FIXME
+    char* word = (char*)calloc(kBufferSize, sizeof(char));
     assert(word);
 
-    sscanf(s+pos, "%[a-z]", word);
+    sscanf(token->string + token->pos, "%[a-z]", word);
 
-    if (!strcmp(word, kLn)) // FIXME copypaste
+    if (!strcmp(word, kLn))
     {
-        pos += strlen(word);
-        FREE(word);
-        if (s[pos] != '(') syntaxError();
-        pos++;
-        tNode* node = newNode(Operation, Ln, getExpression(), NULL);
-        if (s[pos] != ')') syntaxError();
-        pos++;
+        MOVE_POS_BY_LENGTH_OF_WORD;
+
+        CHECK_LEFT_PARENTHESIS;
+        tNode* node = newNode(Operation, Ln, getExpression(token), NULL);
+        CHECK_RIGHT_PARENTHESIS;
+
         return node;
     }
     else if (!strcmp(word, kLog))
     {
-        pos += strlen(word);
-        FREE(word);
-        if (s[pos] != '(') syntaxError();
-        pos++;
-        tNode* leftNode = getExpression();
-        if (s[pos] != ')') syntaxError();
-        pos++;
-        if (s[pos] != '(') syntaxError();
-        pos++;
-        tNode* node = newNode(Operation, Log, leftNode, getExpression());
-        if (s[pos] != ')') syntaxError();
-        pos++;
+        MOVE_POS_BY_LENGTH_OF_WORD;
+
+        CHECK_LEFT_PARENTHESIS;
+        tNode* leftNode = getExpression(token);
+        CHECK_RIGHT_PARENTHESIS;
+
+        CHECK_LEFT_PARENTHESIS;
+        tNode* node = newNode(Operation, Log, leftNode, getExpression(token));
+        CHECK_RIGHT_PARENTHESIS;
+
         return node;
     }
     else if (!strcmp(word, kLg))
     {
-        pos += strlen(word);
-        FREE(word);
-        if (s[pos] != '(') syntaxError();
-        pos++;
-        tNode* node = newNode(Operation, Lg, getExpression(), NULL);
-        if (s[pos] != ')') syntaxError();
-        pos++;
+        MOVE_POS_BY_LENGTH_OF_WORD;
+
+        CHECK_LEFT_PARENTHESIS;
+        tNode* node = newNode(Operation, Lg, getExpression(token), NULL);
+        CHECK_RIGHT_PARENTHESIS;
+
         return node;
     }
     else if (!strcmp(word, kSin))
     {
-        pos += strlen(word);
-        FREE(word);
-        if (s[pos] != '(') syntaxError();
-        pos++;
-        tNode* node = newNode(Operation, Sin, getExpression(), NULL);
-        if (s[pos] != ')') syntaxError();
-        pos++;
+        MOVE_POS_BY_LENGTH_OF_WORD;
+
+        CHECK_LEFT_PARENTHESIS;
+        tNode* node = newNode(Operation, Sin, getExpression(token), NULL);
+        CHECK_RIGHT_PARENTHESIS;
+
         return node;
     }
     else if (!strcmp(word, kCos))
     {
-        pos += strlen(word);
-        FREE(word);
-        if (s[pos] != '(') syntaxError();
-        pos++;
-        tNode* node = newNode(Operation, Cos, getExpression(), NULL);
-        if (s[pos] != ')') syntaxError();
-        pos++;
+        MOVE_POS_BY_LENGTH_OF_WORD;
+
+        CHECK_LEFT_PARENTHESIS;
+        tNode* node = newNode(Operation, Cos, getExpression(token), NULL);
+        CHECK_RIGHT_PARENTHESIS;
+
         return node;
     }
     else if (!strcmp(word, kTg))
     {
-        pos += strlen(word);
-        FREE(word);
-        if (s[pos] != '(') syntaxError();
-        pos++;
-        tNode* node = newNode(Operation, Tg, getExpression(), NULL);
-        if (s[pos] != ')') syntaxError();
-        pos++;
+        MOVE_POS_BY_LENGTH_OF_WORD;
+
+        CHECK_LEFT_PARENTHESIS;
+        tNode* node = newNode(Operation, Tg, getExpression(token), NULL);
+        CHECK_RIGHT_PARENTHESIS;
+
         return node;
     }
     else if (!strcmp(word, kCtg))
     {
-        pos += strlen(word);
-        FREE(word);
-        if (s[pos] != '(') syntaxError();
-        pos++;
-        tNode* node = newNode(Operation, Ctg, getExpression(), NULL);
-        if (s[pos] != ')') syntaxError();
-        pos++;
+        MOVE_POS_BY_LENGTH_OF_WORD;
+
+        CHECK_LEFT_PARENTHESIS;
+        tNode* node = newNode(Operation, Ctg, getExpression(token), NULL);
+        CHECK_RIGHT_PARENTHESIS;
+
         return node;
     }
     else
@@ -199,29 +214,29 @@ tNode* getFunction()
     }
 }
 
-tNode* getNumber()
+tNode* getNumber(Data* token)
 {
     int value = 0;
-    size_t old_pos = pos;
-    while (isdigit(s[pos]))
+    size_t old_pos = token->pos;
+    while (isdigit(token->string[token->pos]))
     {
-        value = value * 10 + s[pos] - '0';
-        pos++;
+        value = value * 10 + token->string[token->pos] - '0';
+        token->pos++;
     }
-    if (old_pos == pos)
+    if (old_pos == token->pos)
         syntaxError();
 
     return NUM(value);
 }
 
-tNode* getVariable()
+tNode* getVariable(Data* token)
 {
     return VAR(1);
 }
 
-void SyntaxError(int lines)
+void syntaxError()
 {
-    fprintf(stderr, "Syntax error: %d\n", lines);
+    fprintf(stderr, "Syntax error\n");
 
     exit(EXIT_FAILURE);
 }

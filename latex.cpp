@@ -164,27 +164,3 @@ void dumpLatexTreeTraversal(tNode* node, FILE* latexFile)
     }
     else assert(0);
 }
-
-// void preOrder(tNode* node, FILE* latexFile)
-// {
-//     if (node == NULL) return;
-//     fprintf(latexFile, "%d ", node->value);
-//     preOrder(node->left, latexFile);
-//     preOrder(node->right, latexFile);
-// }
-//
-// void inOrder(tNode* root, FILE* latexFile)
-// {
-//     if (root == NULL) return;
-//     inOrder(root->left, latexFile);
-//     fprintf(latexFile, "%d ", root->value);
-//     inOrder(root->right, latexFile);
-// }
-//
-// void postOrder(tNode* root, FILE* latexFile)
-// {
-//     if (root == NULL) return;
-//     postOrder(root->left, latexFile);
-//     postOrder(root->right, latexFile);
-//     fprintf(latexFile, "%d ", root->value);
-// }
