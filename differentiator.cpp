@@ -229,7 +229,6 @@ tNode* diff(tNode* node)
     if (node->type == Variable ) return NUM(1);
     if (node->type == Operation)
     {
-        fprintf(stderr, "%d ", node->value);
         switch (node->value)
         {
             case Add : return diffAdd (node); break;
