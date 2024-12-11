@@ -10,6 +10,21 @@
 #include "dsl.h"
 #include "debug.h"
 
+// static --------------------------------------------------------------------------------------------------------------
+
+static size_t getFileSize(FILE* file);
+static tNode* getGrammar(Data* token);
+static tNode* getExpression(Data* token);
+static tNode* getMultiplication(Data* token);
+static tNode* getDegree(Data* token);
+static tNode* getParentheses(Data* token);
+static tNode* getNumber(Data* token);
+static tNode* getVariable();
+static tNode* getFunction(Data* token);
+[[noreturn]] static void syntaxError();
+
+// global --------------------------------------------------------------------------------------------------------------
+
 tNode* runParser()
 {
     FILE* inputFile = fopen(kNameOfInputFile, "r");
@@ -19,14 +34,16 @@ tNode* runParser()
 
     fread(token.string, sizeof(char), getFileSize(inputFile), inputFile);
 
-    tNode* diffRoot = getGrammar(&token);
+    tNode* root = getGrammar(&token);
 
     FCLOSE(inputFile);
 
-    return diffRoot;
+    return root;
 }
 
-size_t getFileSize(FILE* file)
+// static --------------------------------------------------------------------------------------------------------------
+
+static size_t getFileSize(FILE* file)
 {
     assert(file);
 
@@ -38,8 +55,10 @@ size_t getFileSize(FILE* file)
     return size;
 }
 
-tNode* getGrammar(Data* token)
+static tNode* getGrammar(Data* token)
 {
+    assert(token);
+
     tNode* node = getExpression(token);
     if (token->string[token->pos] != '$')
     {
@@ -49,8 +68,10 @@ tNode* getGrammar(Data* token)
     return node;
 }
 
-tNode* getExpression(Data* token)
+static tNode* getExpression(Data* token)
 {
+    assert(token);
+
     tNode* leftNode = getMultiplication(token);
 
     while (token->string[token->pos] == '+' || token->string[token->pos] == '-')
@@ -70,8 +91,10 @@ tNode* getExpression(Data* token)
     return leftNode;
 }
 
-tNode* getMultiplication(Data* token)
+static tNode* getMultiplication(Data* token)
 {
+    assert(token);
+
     tNode* leftNode = getDegree(token);
 
     while (token->string[token->pos] == '*' || token->string[token->pos] == '/')
@@ -91,8 +114,10 @@ tNode* getMultiplication(Data* token)
     return leftNode;
 }
 
-tNode* getDegree(Data* token)
+static tNode* getDegree(Data* token)
 {
+    assert(token);
+
     tNode* leftNode = getParentheses(token);
 
     if (token->string[token->pos] == '^')
@@ -105,8 +130,10 @@ tNode* getDegree(Data* token)
     return leftNode;
 }
 
-tNode* getParentheses(Data* token)
+static tNode* getParentheses(Data* token)
 {
+    assert(token);
+
     if (token->string[token->pos] == '(')
     {
         token->pos++;
@@ -119,15 +146,17 @@ tNode* getParentheses(Data* token)
     else if (token->string[token->pos] == 'x')
     {
         token->pos++;
-        return getVariable(token);
+        return getVariable();
     }
     else if (isdigit(token->string[token->pos])) return getNumber(token);
     else if (isalpha(token->string[token->pos])) return getFunction(token);
     else assert(0);
 }
 
-tNode* getFunction(Data* token)
+static tNode* getFunction(Data* token)
 {
+    assert(token);
+
     char* word = (char*)calloc(kBufferSize, sizeof(char));
     assert(word);
 
@@ -214,8 +243,10 @@ tNode* getFunction(Data* token)
     }
 }
 
-tNode* getNumber(Data* token)
+static tNode* getNumber(Data* token)
 {
+    assert(token);
+
     int value = 0;
     size_t old_pos = token->pos;
     while (isdigit(token->string[token->pos]))
@@ -229,12 +260,12 @@ tNode* getNumber(Data* token)
     return NUM(value);
 }
 
-tNode* getVariable(Data* token)
+static tNode* getVariable()
 {
     return VAR(1);
 }
 
-void syntaxError()
+static void syntaxError()
 {
     fprintf(stderr, "Syntax error\n");
 

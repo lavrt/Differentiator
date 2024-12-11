@@ -9,15 +9,7 @@ int main()
 {
     tNode* root = runParser();
 
-    dump(root, kDumpFileName);
-
-    tNode* diffRoot = diff(root);
-
-    dump(diffRoot, kDiffDumpFileName);
-
-    latexGeneration(diffRoot);
-
-    treeDtor(diffRoot);
+    latexGeneration(root);
 
     treeDtor(root);
 

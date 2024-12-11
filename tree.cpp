@@ -6,6 +6,15 @@
 
 #include "debug.h"
 
+// static --------------------------------------------------------------------------------------------------------------
+
+static tNode* memoryAllocationForNode();
+static void dumpTreeTraversal(tNode* node, FILE* dumpFile);
+static void dumpTreeTraversalWithArrows(tNode* node, FILE* dumpFile);
+static void printOperationType(tNode* node, FILE* dumpFile);
+
+// global --------------------------------------------------------------------------------------------------------------
+
 tNode* newNode(NodeType type, int value, tNode* left, tNode* right)
 {
     tNode* node = NULL;
@@ -49,14 +58,6 @@ tNode* newNode(NodeType type, int value, tNode* left, tNode* right)
     return node;
 }
 
-tNode* memoryAllocationForNode(void)
-{
-    tNode* node = (tNode*)calloc(1, sizeof(tNode));
-    assert(node);
-
-    return node;
-}
-
 void treeDtor(tNode* node)
 {
     assert(node);
@@ -88,11 +89,62 @@ void dump(tNode* root, const char* const dumpFileName)
 
     FCLOSE(dumpFile);
 
-    (!strcmp(dumpFileName, kDumpFileName)) ? system("dot dump.gv -Tpng -o dump.png")
-                                           : system("dot diffDump.gv -Tpng -o diffDump.png");
+    if (!strcmp(dumpFileName, kDumpFileName))
+        system("dot dump.gv -Tpng -o dump.png");
+    else if (!strcmp(dumpFileName, kFirstDerivativeDumpFileName))
+        system("dot dumpFirstDerivative.gv -Tpng -o dumpFirstDerivative.png");
+    else
+        system("dot dumpSecondDerivative.gv -Tpng -o dumpSecondDerivative.png");
 }
 
-void dumpTreeTraversal(tNode* node, FILE* dumpFile)
+tNode* copyNode(tNode* node)
+{
+    return (node)
+                  ? newNode(node->type, node->value, copyNode(node->left), copyNode(node->right))
+                  : NULL;
+}
+
+bool subtreeContainsVariable(tNode* node)
+{
+    if (!node) return false;
+
+    static int rank = 0;
+    static bool presenceOfVariable = false;
+
+    if (node->type == Variable)
+    {
+        presenceOfVariable = true;
+    }
+    else
+    {
+        rank++;
+        subtreeContainsVariable(node->left);
+        subtreeContainsVariable(node->right);
+        rank--;
+    }
+
+    if (presenceOfVariable && !rank)
+    {
+        presenceOfVariable = false;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+// static --------------------------------------------------------------------------------------------------------------
+
+static tNode* memoryAllocationForNode(void)
+{
+    tNode* node = (tNode*)calloc(1, sizeof(tNode));
+    assert(node);
+
+    return node;
+}
+
+static void dumpTreeTraversal(tNode* node, FILE* dumpFile)
 {
     assert(dumpFile);
     if (!node) return;
@@ -143,7 +195,7 @@ void dumpTreeTraversal(tNode* node, FILE* dumpFile)
     rank--;
 }
 
-void dumpTreeTraversalWithArrows(tNode* node, FILE* dumpFile)
+static void dumpTreeTraversalWithArrows(tNode* node, FILE* dumpFile)
 {
     assert(dumpFile);
     if (!node) return;
@@ -165,7 +217,7 @@ void dumpTreeTraversalWithArrows(tNode* node, FILE* dumpFile)
     flag = 0;
 }
 
-void printOperationType(tNode* node, FILE* dumpFile) // NOTE define maybe ?
+static void printOperationType(tNode* node, FILE* dumpFile) // NOTE define maybe ?
 {
     assert(node);
     assert(node->type == Operation);
@@ -187,42 +239,5 @@ void printOperationType(tNode* node, FILE* dumpFile) // NOTE define maybe ?
         case uSub:fprintf(dumpFile, "%s", kSub); break;
 
         default: assert(0);
-    }
-}
-
-tNode* copyNode(tNode* node)
-{
-    return (node)
-                  ? newNode(node->type, node->value, copyNode(node->left), copyNode(node->right))
-                  : NULL;
-}
-
-bool subtreeContainsVariable(tNode* node)
-{
-    if (!node) return false;
-
-    static int rank = 0;
-    static bool presenceOfVariable = false;
-
-    if (node->type == Variable)
-    {
-        presenceOfVariable = true;
-    }
-    else
-    {
-        rank++;
-        subtreeContainsVariable(node->left);
-        subtreeContainsVariable(node->right);
-        rank--;
-    }
-
-    if (presenceOfVariable && !rank)
-    {
-        presenceOfVariable = false;
-        return true;
-    }
-    else
-    {
-        return false;
     }
 }

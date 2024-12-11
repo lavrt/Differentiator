@@ -7,16 +7,33 @@
 #include <assert.h>
 #include <stdlib.h>
 
-int simplificationByCalc(tNode* node)
+// static --------------------------------------------------------------------------------------------------------------
+
+static tNode* diffAdd(tNode* node);
+static tNode* diffSub(tNode* node);
+static tNode* diffMul(tNode* node);
+static tNode* diffDiv(tNode* node);
+static tNode* diffDeg(tNode* node);
+static tNode* diffLn (tNode* node);
+static tNode* diffLog(tNode* node);
+static tNode* diffLg (tNode* node);
+static tNode* diffSin(tNode* node);
+static tNode* diffCos(tNode* node);
+static tNode* diffTg (tNode* node);
+static tNode* diffCtg(tNode* node);
+
+// global --------------------------------------------------------------------------------------------------------------
+
+void simplificationByCalc(tNode* node, int* counter)
 {
-    int counter = 0;
+    assert(node);
 
     assert(node->type == Operation);
 
     if (node->left  && node->right
         && node->left->type == Number && node->right->type == Number)
     {
-        counter++;
+        (*counter)++;
 
         switch (node->value)
         {
@@ -49,7 +66,7 @@ int simplificationByCalc(tNode* node)
         && ((node->left->type == Number && node->left->value == 0)
         || (node->right->type == Number && node->right->value == 0)))
     {
-        counter++;
+        (*counter)++;
 
         if (node->left->value == 0)
         {
@@ -83,7 +100,7 @@ int simplificationByCalc(tNode* node)
         && ((node->right->type == Number && node->right->value == 0)
         || (node->left->type == Number && node->left->value == 0)))
     {
-        counter++;
+        (*counter)++;
 
         if (node->right->value == 0)
         {
@@ -111,7 +128,7 @@ int simplificationByCalc(tNode* node)
         && ((node->left->type == Number && node->left->value == 0)
         || (node->right->type == Number && node->right->value == 0)))
     {
-        counter++;
+        (*counter)++;
 
         node->type = Number;
         node->value = 0;
@@ -125,7 +142,7 @@ int simplificationByCalc(tNode* node)
         && ((node->left->type == Number && node->left->value == 1)
         || (node->right->type == Number && node->right->value == 1)))
     {
-        counter++;
+        (*counter)++;
 
         if (node->left->value == 1)
         {
@@ -158,7 +175,7 @@ int simplificationByCalc(tNode* node)
     if (node->type == Operation && node->value == Div
         && node->right->type == Number && node->right->value == 1)
     {
-        counter++;
+        (*counter)++;
 
         FREE(node->right);
 
@@ -176,7 +193,7 @@ int simplificationByCalc(tNode* node)
         && ((node->right->type == Number && node->right->value == 0)
         || (node->right->type == Number && node->right->value == 1)))
     {
-        counter++;
+        (*counter)++;
 
         if (node->right->value == 0)
         {
@@ -201,10 +218,8 @@ int simplificationByCalc(tNode* node)
         }
     }
 
-    if (node->left && (node->left->type == Operation)) simplificationByCalc(node->left);
-    if (node->right && (node->right->type == Operation)) simplificationByCalc(node->right);
-
-    return counter;
+    if (node->left && (node->left->type == Operation)) simplificationByCalc(node->left, counter);
+    if (node->right && (node->right->type == Operation)) simplificationByCalc(node->right, counter);
 }
 
 tNode* diff(tNode* node)
@@ -237,7 +252,9 @@ tNode* diff(tNode* node)
     else assert(0);
 }
 
-tNode* diffAdd(tNode* node)
+// static --------------------------------------------------------------------------------------------------------------
+
+static tNode* diffAdd(tNode* node)
 {
     assert(node);
 
@@ -245,7 +262,7 @@ tNode* diffAdd(tNode* node)
         ADD(diff(node->left), diff(node->right));
 }
 
-tNode* diffSub(tNode* node)
+static tNode* diffSub(tNode* node)
 {
     assert(node);
 
@@ -253,7 +270,7 @@ tNode* diffSub(tNode* node)
         SUB(diff(node->left), diff(node->right));
 }
 
-tNode* diffMul(tNode* node)
+static tNode* diffMul(tNode* node)
 {
     assert(node);
 
@@ -264,7 +281,7 @@ tNode* diffMul(tNode* node)
         );
 }
 
-tNode* diffDiv(tNode* node)
+static tNode* diffDiv(tNode* node)
 {
     assert(node);
 
@@ -278,7 +295,7 @@ tNode* diffDiv(tNode* node)
         );
 }
 
-tNode* diffDeg(tNode* node)
+static tNode* diffDeg(tNode* node)
 {
     assert(node);
 
@@ -331,7 +348,7 @@ tNode* diffDeg(tNode* node)
     else assert(0);
 }
 
-tNode* diffLn(tNode* node)
+static tNode* diffLn(tNode* node)
 {
     assert(node);
 
@@ -349,7 +366,7 @@ tNode* diffLn(tNode* node)
     }
 }
 
-tNode* diffLog(tNode* node)
+static tNode* diffLog(tNode* node)
 {
     assert(node);
 
@@ -424,7 +441,7 @@ tNode* diffLog(tNode* node)
     else assert(0);
 }
 
-tNode* diffLg(tNode* node)
+static tNode* diffLg(tNode* node)
 {
     assert(node);
 
@@ -438,7 +455,7 @@ tNode* diffLg(tNode* node)
         );
 }
 
-tNode* diffSin(tNode* node)
+static tNode* diffSin(tNode* node)
 {
     assert(node);
 
@@ -449,7 +466,7 @@ tNode* diffSin(tNode* node)
         );
 }
 
-tNode* diffCos(tNode* node)
+static tNode* diffCos(tNode* node)
 {
     assert(node);
 
@@ -463,7 +480,7 @@ tNode* diffCos(tNode* node)
         );
 }
 
-tNode* diffTg(tNode* node)
+static tNode* diffTg(tNode* node)
 {
     assert(node);
 
@@ -477,7 +494,7 @@ tNode* diffTg(tNode* node)
         );
 }
 
-tNode* diffCtg(tNode* node)
+static tNode* diffCtg(tNode* node)
 {
     assert(node);
 

@@ -6,6 +6,13 @@
 #include "node.h"
 #include "debug.h"
 
+// static --------------------------------------------------------------------------------------------------------------
+
+static void printSimplifications(tNode* root, FILE* file, const char* const nameOfMathFunction);
+static void dumpLatexTreeTraversal(tNode* node, FILE* latexFile);
+
+// global --------------------------------------------------------------------------------------------------------------
+
 void latexGeneration(tNode* root)
 {
     assert(root);
@@ -21,25 +28,54 @@ void latexGeneration(tNode* root)
             "\\geometry{left=2cm,right=2cm,top=2cm,bottom=3cm,bindingoffset=0cm}\n\n"
             "\\begin{document}\n\n"
             "\\begin{center}\n"
-            "\\section*{Differentiation of a mathematical expression}\n"
-            "\\end{center}\n\n");
+            "\\section*{%s}\n", kDocumentTitle);
 
-    bool expressionIsBeingConverted = true;
-    while (expressionIsBeingConverted)
-    {
-        fprintf(latexFile, "\\[f^\\prime =");
-        dumpLatexTreeTraversal(root, latexFile);
-        fprintf(latexFile, "\\]\n");
+    fprintf(latexFile, kPhraseAboutOriginalFunction);
+    printSimplifications(root, latexFile, kNameOfOriginalFunction);
+    dump(root, kDumpFileName);
 
-        expressionIsBeingConverted = (simplificationByCalc(root)) ? true : false;
-    }
+    tNode* firstDerivative = diff(root);
+    fprintf(latexFile, kPhraseAboutFirstDerivative);
+    printSimplifications(firstDerivative, latexFile, kNameOfFirstDerivativeFunction);
+    dump(firstDerivative, kFirstDerivativeDumpFileName);
 
-    fprintf(latexFile, "\n\\end{document}\n");
+    tNode* secondDerivative = diff(firstDerivative);
+    fprintf(latexFile, kPhraseAboutSecondDerivative);
+    printSimplifications(secondDerivative, latexFile, kNameOfSecondDerivativeFunction);
+    dump(secondDerivative, kSecondDerivativeDumpFileName);
+
+    treeDtor(firstDerivative);
+    treeDtor(secondDerivative);
+
+    fprintf(latexFile,
+        "%s\n"
+        "\\includegraphics[width=1\\linewidth]{%s}\n"
+        "\\end{center}\n"
+        "\n\\end{document}\n", kPhraseAtTheEnd, kMemePictureName);
 
     FCLOSE(latexFile);
 }
 
-void dumpLatexTreeTraversal(tNode* node, FILE* latexFile)
+// static --------------------------------------------------------------------------------------------------------------
+
+static void printSimplifications(tNode* root, FILE* file, const char* const nameOfMathFunction)
+{
+    int numberOfSimplifications = 0;
+    bool expressionIsBeingConverted = true;
+
+    while (expressionIsBeingConverted)
+    {
+        fprintf(file, "\\[%s = ", nameOfMathFunction);
+        dumpLatexTreeTraversal(root, file);
+        fprintf(file, "\\]\n");
+
+        simplificationByCalc(root, &numberOfSimplifications);
+        expressionIsBeingConverted = (numberOfSimplifications) ? true : false;
+        numberOfSimplifications = 0;
+    }
+}
+
+static void dumpLatexTreeTraversal(tNode* node, FILE* latexFile)
 {
     assert(node);
     assert(latexFile);
@@ -151,8 +187,9 @@ void dumpLatexTreeTraversal(tNode* node, FILE* latexFile)
             break;
             case uSub:
             {
-                fprintf(latexFile, " -");
+                fprintf(latexFile, " (-");
                 dumpLatexTreeTraversal(node->left, latexFile);
+                fprintf(latexFile, ") ");
             }
             break;
             default: assert(0);
