@@ -6,7 +6,7 @@
 #include "tree.h"
 
 const char* const kLatexFileName = "derivative.tex";
-const char* const kMemePictureName = "mem.jpg";
+const char* const kMemePictureName = "./data/mem.jpg";
 
 const char* const kNameOfOriginalFunction = "f";
 const char* const kNameOfFirstDerivativeFunction = "f^\\prime";

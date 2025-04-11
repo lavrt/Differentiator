@@ -1,0 +1,14 @@
+digraph
+{
+    rankdir = TB;
+    node [shape=record,style = filled,penwidth = 2.5];
+    bgcolor = "#FDFBE4";
+
+    node_0x503000000160 [rank=0,label=" { node: 0x503000000160 | type: operation | value: * | { left: 0x5030000000a0 | right: 0x503000000130 }} ", color = "#E8D59E"];
+    node_0x5030000000a0 [rank=1,label=" { node: 0x5030000000a0 | type: operation | value: sin | { left: 0x503000000070 | right: (nil) }} ", color = "#E8D59E"];
+    node_0x503000000070 [rank=2,label=" { node: 0x503000000070 | type: variable | value: 1 | { left: (nil) | right: (nil) }} ", color = "#EBAEE6"];
+    node_0x503000000130 [rank=1,label=" { node: 0x503000000130 | type: operation | value: cos | { left: 0x503000000100 | right: (nil) }} ", color = "#E8D59E"];
+    node_0x503000000100 [rank=2,label=" { node: 0x503000000100 | type: variable | value: 1 | { left: (nil) | right: (nil) }} ", color = "#EBAEE6"];
+    node_0x503000000160 -> node_0x5030000000a0 -> node_0x503000000070 ;
+    node_0x503000000160 -> node_0x503000000130 -> node_0x503000000100 ;
+}

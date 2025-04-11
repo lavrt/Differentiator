@@ -89,12 +89,14 @@ void dump(tNode* root, const char* const dumpFileName)
 
     FCLOSE(dumpFile);
 
-    if (!strcmp(dumpFileName, kDumpFileName))
-        system("dot dump.gv -Tpng -o dump.png");
-    else if (!strcmp(dumpFileName, kFirstDerivativeDumpFileName))
-        system("dot dumpFirstDerivative.gv -Tpng -o dumpFirstDerivative.png");
-    else
-        system("dot dumpSecondDerivative.gv -Tpng -o dumpSecondDerivative.png");
+    #if defined GRAPHVIZ
+        if (!strcmp(dumpFileName, kDumpFileName))
+            system("dot dump.gv -Tpng -o dump.png");
+        else if (!strcmp(dumpFileName, kFirstDerivativeDumpFileName))
+            system("dot dumpFirstDerivative.gv -Tpng -o dumpFirstDerivative.png");
+        else
+            system("dot dumpSecondDerivative.gv -Tpng -o dumpSecondDerivative.png");
+    #endif
 }
 
 tNode* copyNode(tNode* node)
@@ -217,7 +219,7 @@ static void dumpTreeTraversalWithArrows(tNode* node, FILE* dumpFile)
     flag = 0;
 }
 
-static void printOperationType(tNode* node, FILE* dumpFile) // NOTE define maybe ?
+static void printOperationType(tNode* node, FILE* dumpFile)
 {
     assert(node);
     assert(node->type == Operation);

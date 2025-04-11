@@ -11,9 +11,9 @@
 #define FCLOSE(ptr_) \
     do { fclose(ptr_); ptr_ = NULL; } while(0);
 
-const char* const kDumpFileName = "dump.gv";
-const char* const kFirstDerivativeDumpFileName = "dumpFirstDerivative.gv";
-const char* const kSecondDerivativeDumpFileName = "dumpSecondDerivative.gv";
+const char* const kDumpFileName = "./dump/dump.gv";
+const char* const kFirstDerivativeDumpFileName = "./dump/dumpFirstDerivative.gv";
+const char* const kSecondDerivativeDumpFileName = "./dump/dumpSecondDerivative.gv";
 
 const char* const kNumber = "number";
 const char* const kVariable = "variable";

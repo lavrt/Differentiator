@@ -1,0 +1,23 @@
+digraph
+{
+    rankdir = TB;
+    node [shape=record,style = filled,penwidth = 2.5];
+    bgcolor = "#FDFBE4";
+
+    node_0x503000000490 [rank=18446744073709551615,label=" { node: 0x503000000490 | type: operation | value: + | { left: 0x503000000460 | right: 0x503000000310 }} ", color = "#E8D59E"];
+    node_0x503000000460 [rank=0,label=" { node: 0x503000000460 | type: operation | value: * | { left: 0x503000000430 | right: 0x503000000370 }} ", color = "#E8D59E"];
+    node_0x503000000430 [rank=1,label=" { node: 0x503000000430 | type: operation | value: cos | { left: 0x5030000003a0 | right: (nil) }} ", color = "#E8D59E"];
+    node_0x5030000003a0 [rank=2,label=" { node: 0x5030000003a0 | type: variable | value: 1 | { left: (nil) | right: (nil) }} ", color = "#EBAEE6"];
+    node_0x503000000370 [rank=1,label=" { node: 0x503000000370 | type: operation | value: cos | { left: 0x503000000340 | right: (nil) }} ", color = "#E8D59E"];
+    node_0x503000000340 [rank=2,label=" { node: 0x503000000340 | type: variable | value: 1 | { left: (nil) | right: (nil) }} ", color = "#EBAEE6"];
+    node_0x503000000310 [rank=0,label=" { node: 0x503000000310 | type: operation | value: * | { left: 0x5030000002e0 | right: 0x5030000001c0 }} ", color = "#E8D59E"];
+    node_0x5030000002e0 [rank=1,label=" { node: 0x5030000002e0 | type: operation | value: - | { left: 0x503000000220 | right: (nil) }} ", color = "#E8D59E"];
+    node_0x503000000220 [rank=2,label=" { node: 0x503000000220 | type: operation | value: sin | { left: 0x5030000001f0 | right: (nil) }} ", color = "#E8D59E"];
+    node_0x5030000001f0 [rank=3,label=" { node: 0x5030000001f0 | type: variable | value: 1 | { left: (nil) | right: (nil) }} ", color = "#EBAEE6"];
+    node_0x5030000001c0 [rank=1,label=" { node: 0x5030000001c0 | type: operation | value: sin | { left: 0x503000000190 | right: (nil) }} ", color = "#E8D59E"];
+    node_0x503000000190 [rank=2,label=" { node: 0x503000000190 | type: variable | value: 1 | { left: (nil) | right: (nil) }} ", color = "#EBAEE6"];
+    node_0x503000000490 -> node_0x503000000460 -> node_0x503000000430 -> node_0x5030000003a0 ;
+    node_0x503000000460 -> node_0x503000000370 -> node_0x503000000340 ;
+    node_0x503000000490 -> node_0x503000000310 -> node_0x5030000002e0 -> node_0x503000000220 -> node_0x5030000001f0 ;
+    node_0x503000000310 -> node_0x5030000001c0 -> node_0x503000000190 ;
+}
