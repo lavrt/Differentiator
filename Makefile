@@ -13,7 +13,7 @@ OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
 
 $(BIN_DIR)/$(TARGET): $(OBJECTS) 
 	@mkdir -p $(BIN_DIR)
-	@$(CXX) $(CXXFLAGS) $^ $(LDFLAGS) -o $@
+	@$(CXX) $(CXXFLAGS) $^ -o $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(BUILD_DIR)
